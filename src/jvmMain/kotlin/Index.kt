@@ -3,46 +3,52 @@ import kotlinx.html.*
 fun HTML.index() {
     head {
         title("Smart URL Shortener")
+        commonHeadPart()
     }
-    body {
-        div {
-            h1 {
-                +"Welcome to Smart URL Shortener"
-            }
-        }
-        div {
+    body(classes = "colorful-background") {
+        div("main-block") {
             h3 {
-                +"This service allows you to create customizable short urls."
-            }
-            ul {
-                li {
-                    +("You can choose expiration date, maximum clicks done by users " +
-                            "or even specify custom HTML pages to show instead of redirecting.")
+                div("header") {
+                    h2 {
+                        +"Welcome to Smart URL Shortener"
+                    }
                 }
-                li {
-                    +"You can modify settings, or delete the link manually with your owner's link."
+                div {
+                    div("header") {
+                        b {
+                            +"This service allows you to create customizable short urls."
+                        }
+                    }
+                    ul {
+                        li {
+                            +("You can choose expiration date, maximum clicks done by users " +
+                                    "or even specify custom HTML pages to show instead of redirecting.")
+                        }
+                        li {
+                            +"You can modify settings, or delete the link manually with your owner's link."
+                        }
+                        li {
+                            +"The owner's link is alive until the owner deletes it."
+                        }
+                    }
                 }
-                li {
-                    +"The owner's link is alive until the owner deletes it."
+                div("header") {
+                    +"Try using it right now!"
+                }
+                h2 {
+                    form {
+                        action = "$serverHost/create"
+                        button(classes = "button bigButton") {
+                            type = ButtonType.submit
+                            style = "width:80%;border-radius:60px"
+                            +"Shorten"
+                        }
+                    }
+                }
+                div {
+                    id = "root"
                 }
             }
-        }
-        div {
-            h4 {
-                +"Try using it right now!"
-            }
-        }
-        div {
-            form {
-                action = "$serverHost/create"
-                button {
-                    type = ButtonType.submit
-                    +"Shorten"
-                }
-            }
-        }
-        div {
-            id = "root"
         }
     }
 }

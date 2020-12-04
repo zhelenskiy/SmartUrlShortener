@@ -5,9 +5,9 @@
       <configuration version="3" platform="JavaScript " allPlatforms="JS []" useProjectSettings="false" isTestModule="true" externalProjectId="SmartUrlShortener" pureKotlinSourceFolders="$MODULE_DIR$/../../src/jsMain/kotlin;/home/zhelenskiy/IdeaProjects/SmartUrlShortener/build/externals/SmartUrlShortener/src;/home/zhelenskiy/IdeaProjects/SmartUrlShortener/src/jsTest/kotlin;/home/zhelenskiy/IdeaProjects/SmartUrlShortener/src/jvmMain/kotlin;/home/zhelenskiy/IdeaProjects/SmartUrlShortener/src/jvmTest/kotlin;/home/zhelenskiy/IdeaProjects/SmartUrlShortener/src/commonMain/kotlin">
         <dependsOnModuleNames>SmartUrlShortener:commonTest</dependsOnModuleNames>
         <sourceSets>
-          <sourceSet>SmartUrlShortener.jsMain</sourceSet>
-          <sourceSet>SmartUrlShortener.commonMain</sourceSet>
           <sourceSet>SmartUrlShortener.commonTest</sourceSet>
+          <sourceSet>SmartUrlShortener.commonMain</sourceSet>
+          <sourceSet>SmartUrlShortener.jsMain</sourceSet>
         </sourceSets>
         <newMppModelJpsModuleKind>COMPILATION_AND_SOURCE_SET_HOLDER</newMppModelJpsModuleKind>
         <externalSystemTestTasks>

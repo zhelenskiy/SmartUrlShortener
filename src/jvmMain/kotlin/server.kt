@@ -20,32 +20,73 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.concurrent.ThreadLocalRandom
 
+fun HEAD.commonHeadPart() {
+    link {
+        href = "/static/icon.png"
+        rel = "icon"
+    }
+    link {
+        href = "https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+        rel = "stylesheet"
+    }
+    link {
+        href = "https://fonts.googleapis.com/css?family=Fira+Sans:300,400,600&display=swap"
+        rel = "stylesheet"
+    }
+    link {
+        href = "/static/Styles.css"
+        rel = "stylesheet"
+    }
+    meta(name = "viewport", content = "width=device-width, initial-scale=1")
+}
+
 private fun HTML.create() {
     head {
         title = "Shortening new URL"
+        commonHeadPart()
         script(src = "/static/output.js") {}
     }
-    body { ownerEditor(null) }
+    body(classes = "common-background") { ownerEditor(null) }
 }
 
 private fun HTML.change(ownerConfig: OwnerConfig) {
     head {
         title = "Editing config"
+        commonHeadPart()
         script(src = "/static/output.js") {}
     }
-    body { ownerEditor(ownerConfig) }
+    body(classes = "common-background") { ownerEditor(ownerConfig) }
 }
 
 private fun HTML.errorPage(code: HttpStatusCode, message: String) {
     head {
         title = "Error $code.value"
+        commonHeadPart()
     }
-    body {
-        h1 {
-            +"$code"
-        }
-        p {
-            +message
+    body(classes = "common-background") {
+        div("main-block") {
+            div("header") {
+                p {
+                    h1 {
+                        div("font-size: xx-large;") {
+                            +"${code.value}"
+                        }
+                    }
+                    h2 {
+                        div("font-size: x-large;") {
+                            +code.description
+                        }
+                    }
+                }
+            }
+            h1 {
+                +message
+            }
+            h1 {
+                a(href = "$serverHost/") {
+                    +"Go to the main page"
+                }
+            }
         }
     }
 }
@@ -75,7 +116,11 @@ suspend fun PipelineContext<*, ApplicationCall>.respondBadHtml(code: HttpStatusC
     call.respondHtml(code) { errorPage(code, message) }
 
 suspend inline fun <reified T> PipelineContext<*, ApplicationCall>.respondGood(value: T): T =
-    call.respondText(runCatching { Json.encodeToString(value) }.onFailure { it.printStackTrace() }.getOrThrow(), ContentType.Application.Json, HttpStatusCode.OK).let { value }
+    call.respondText(
+        runCatching { Json.encodeToString(value) }.onFailure { it.printStackTrace() }.getOrThrow(),
+        ContentType.Application.Json,
+        HttpStatusCode.OK
+    ).let { value }
 
 fun main() {
     fun newLog() = ThreadLocalRandom.current().nextLong()
@@ -98,6 +143,7 @@ fun main() {
             }
             static("/static") {
                 resources()
+                resources("files")
             }
             get("/create") {
                 call.respondHtml(HttpStatusCode.OK, HTML::create)
@@ -127,21 +173,13 @@ fun main() {
                         return@get
                     }
 
-                    val show = call.parameters["show"]?.toBoolean() ?: false
-
                     when (val config = database.getConfig(Url(url)).also { log("Found config is $it") }) {
                         null -> respondBadHtml(HttpStatusCode.NotFound, "Unknown shortened URL")
                         is PublicConfig -> when (val page = config.data.redirect) {
                             is HtmlPage -> call.respondText(page.code, ContentType.Text.Html)
                             is PageByUrl -> call.respondRedirect(page.url.text)
                         }
-                        is OwnerConfig ->
-                            if (show)
-                                when (val goTo = config.publicConfig.data.redirect) {
-                                    is PageByUrl -> call.respondRedirect(goTo.url.text)
-                                    is HtmlPage -> call.respondText(goTo.code, ContentType.Text.Html)
-                                }
-                            else call.respondHtml(HttpStatusCode.OK) { change(config) }
+                        is OwnerConfig -> call.respondHtml(HttpStatusCode.OK) { change(config) }
                     }
                 }
             }

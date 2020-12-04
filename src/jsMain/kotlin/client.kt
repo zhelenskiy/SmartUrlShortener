@@ -13,157 +13,224 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import org.w3c.dom.*
-import org.w3c.dom.url.URL
 import org.w3c.files.Blob
 import org.w3c.files.FileReader
 import org.w3c.files.get
 
 fun main() {
-    fun isFromUrl() = (document.getElementById("source-url") as HTMLInputElement).checked
 
-    fun getFileSelector() = document.getElementById("file-selector") as HTMLInputElement
-
-    fun getUrlSelector() = document.getElementById("url-selector") as HTMLInputElement
-
-    fun chosenFile(fileSelector: HTMLInputElement): Blob? =
-        fileSelector.files?.get(0)
-
-    fun updateSourceType() {
-        val fromUrl: Boolean = isFromUrl()
-        (document.getElementById("file-selector-div") as HTMLDivElement).style.display =
-            if (fromUrl) "none" else "block"
-        val fileSelector = getFileSelector()
-        fileSelector.required = !fromUrl
-        (document.getElementById("url-selector-div") as HTMLDivElement).style.display =
-            if (fromUrl) "block" else "none"
-        val urlSelector = getUrlSelector()
-        urlSelector.required = fromUrl
-        (document.getElementById("show-link") as HTMLAnchorElement).href =
-            (if (fromUrl) urlSelector.value.takeUnless { it.isBlank() }
-            else chosenFile(fileSelector)?.let { URL.createObjectURL(it) })
-                ?: "about:blank"
-        val useDate = (document.getElementById("date-selector-checkbox") as HTMLInputElement).checked
-        (document.getElementById("date-selector") as HTMLInputElement).apply {
-            hidden = !useDate
-            required = useDate
-        }
-        val useMaxClicks = (document.getElementById("max-clicks-selector-checkbox") as HTMLInputElement).checked
-        (document.getElementById("max-clicks-selector") as HTMLInputElement).apply {
-            hidden = !useMaxClicks
-            required = useMaxClicks
-        }
-        val status = document.getElementById("status") as HTMLLabelElement
-        val form = document.getElementById("input-form") as HTMLFormElement
-        if (!form.checkValidity()) {
-            status.textContent = "Not all fields are filled in"
-            status.style.color = "red"
-        } else {
-            status.textContent = "The config is filled correct"
-            status.style.color = "green"
-        }
-    }
-
-    fun sendData(userData: UserData?) {
-        val url = (document.getElementById("owner-link") as? HTMLAnchorElement)?.text
-        val client = HttpClient(Js) {
-            install(JsonFeature) {
-                serializer = KotlinxSerializer()
-            }
-        }
-        GlobalScope.launch {
-            val status = document.getElementById("status") as HTMLLabelElement
-            try {
-                when {
-                    userData == null -> {
-                        client.delete<Unit>("$serverHost/api/delete?k=$url")
-                        window.location.href = "$serverHost/"
-                    }
-                    url != null -> {
-                        window.alert(url)
-                        client.put<Unit>("$serverHost/api/modify?k=$url") {
-                            contentType(ContentType.Application.Json)
-                            body = userData
-                        }
-                        window.location.href = "$serverHost/redirect?k=$url"
-                    }
-                    else -> {
-                        val registered: OwnerConfig = client.post("$serverHost/api/shorten/") {
-                            contentType(ContentType.Application.Json)
-                            body = userData
-                        }
-                        window.alert(registered.toString())
-                        window.location.href = "$serverHost/redirect?k=${registered.ownerUrl.text}"
-                    }
-                }
-                status.textContent = "Operation has succeeded"
-                status.style.color = "green"
-            } catch(e: Throwable) {
-                console.log(e.stackTraceToString())
-                status.textContent = "Error happened: ${e.message}"
-                status.style.color = "red"
-            }
-        }
-    }
     window.onload = {
         val status = document.getElementById("status") as HTMLLabelElement
-        (document.getElementById("init-date") as? HTMLLabelElement)?.textContent?.toLongOrNull()?.let {
-            eval("document.getElementById(\"date-selector\").valueAsNumber = $it;")
-        }
         val form = document.getElementById("input-form") as HTMLFormElement
-        form.onchange = { updateSourceType() }
         val submitButton = document.getElementById("submit-button") as HTMLInputElement
-        submitButton.onclick = { _ ->
-            if (!form.checkValidity()) {
+        val fileSelector = document.getElementById("file-selector") as HTMLInputElement
+//        val highlightCheckbox = document.getElementById("highlight-checkbox") as HTMLInputElement
+        val urlSelector = document.getElementById("url-selector") as HTMLInputElement
+        val fileSelectorDiv = document.getElementById("file-selector-div") as HTMLDivElement
+        val urlSelectorDiv = document.getElementById("url-selector-div") as HTMLDivElement
+        val dateSelectorCheckbox = document.getElementById("date-selector-checkbox") as HTMLInputElement
+        val dateSelector = document.getElementById("date-selector") as HTMLInputElement
+        val sourceUrl = document.getElementById("source-url") as HTMLInputElement
+        val maxClicksSelectorCheckbox = document.getElementById("max-clicks-selector-checkbox") as HTMLInputElement
+        val maxClicksSelector = document.getElementById("max-clicks-selector") as HTMLInputElement
+//        val codeSourceBlock = document.getElementById("code-source-block") as HTMLDivElement
+        val ownerLink = document.getElementById("owner-link") as? HTMLAnchorElement
+        val initDate = document.getElementById("init-date") as? HTMLLabelElement
+        val showLink = document.getElementById("show-link") as HTMLButtonElement
+        val deleteButton = document.getElementById("delete-button") as? HTMLInputElement
+//        val codeSource = (document.getElementById("code-source"))!!
+        val highlightButton = document.getElementById("highlight-button") as HTMLButtonElement
+        val fileStatus = document.getElementById("file-status") as HTMLLabelElement
+        val clearButton = document.getElementById("clear-button") as HTMLButtonElement
+
+        var loadedHtml = (document.getElementById("init-user-html") as HTMLLabelElement).textContent ?: ""
+
+
+        fun isFromUrl(): Boolean = sourceUrl.checked
+
+        fun customCheckValidity(form: HTMLFormElement) =
+            form.checkValidity() && (isFromUrl() || loadedHtml.isNotBlank())
+
+        fun defaultStatus() {
+            if (!customCheckValidity(form)) {
                 status.textContent = "Not all fields are filled in"
                 status.style.color = "red"
             } else {
-                status.textContent = "The config is filled correct"
+                status.textContent = "The config is filled correctly"
                 status.style.color = "green"
-                val date = ((document.getElementById("date-selector") as HTMLInputElement)
-                    .takeIf { (document.getElementById("date-selector-checkbox") as HTMLInputElement).checked }
-                    ?.value
-                    ?.runCatching { toLocalDateTime() }?.getOrNull())
-                    ?.let { SerializableDate(it.toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()) }
-                val n = (document.getElementById("max-clicks-selector") as HTMLInputElement)
-                    .takeIf { (document.getElementById("max-clicks-selector-checkbox") as HTMLInputElement).checked }
-                    ?.value?.toIntOrNull()
-                if (isFromUrl()) {
-                    val urlText = getUrlSelector().value
-                    if (urlText.isNotBlank()) {
-                        sendData(UserData(PageByUrl(Url(urlText)), date, n))
+            }
+        }
+
+        fun chosenFile(fileSelector: HTMLInputElement): Blob? = fileSelector.files?.get(0)
+
+        fun updateSourceType() {
+            val fromUrl: Boolean = isFromUrl()
+            fileSelectorDiv.style.display = if (fromUrl) "none" else "block"
+//        val fileSelector = getFileSelector()
+//        fileSelector.required = !fromUrl
+            urlSelectorDiv.style.display = if (fromUrl) "block" else "none"
+            urlSelector.required = fromUrl
+            val useDate = dateSelectorCheckbox.checked
+            dateSelector.apply {
+                style.visibility = if (useDate) "visible" else "hidden"
+                required = useDate
+            }
+            val useMaxClicks = maxClicksSelectorCheckbox.checked
+            maxClicksSelector.apply {
+                style.visibility = if (useMaxClicks) "visible" else "hidden"
+                required = useMaxClicks
+            }
+//            codeSourceBlock.style.display = if (highlightCheckbox.checked) "block" else "none"
+            defaultStatus()
+        }
+
+        fun sendData(userData: UserData?) {
+            val url = ownerLink?.text
+            val client = HttpClient(Js) {
+                install(JsonFeature) {
+                    serializer = KotlinxSerializer()
+                }
+            }
+            GlobalScope.launch {
+                try {
+                    when {
+                        userData == null -> {
+                            client.delete<Unit>("$serverHost/api/delete?k=$url")
+                            window.location.href = "$serverHost/"
+                        }
+                        url != null -> {
+//                        window.alert(url)
+                            client.put<Unit>("$serverHost/api/modify?k=$url") {
+                                contentType(ContentType.Application.Json)
+                                body = userData
+                            }
+                            window.location.href = "$serverHost/redirect?k=$url"
+                        }
+                        else -> {
+                            val registered: OwnerConfig = client.post("$serverHost/api/shorten/") {
+                                contentType(ContentType.Application.Json)
+                                body = userData
+                            }
+//                        window.alert(registered.toString())
+                            window.location.href = "$serverHost/redirect?k=${registered.ownerUrl.text}"
+                        }
                     }
-                } else {
-                    val chosenFile = chosenFile(getFileSelector())
-                    if (chosenFile != null) {
-                        val fileReader = FileReader()
-                        submitButton.readOnly = true
-                        status.innerText = "Loading from disk"
-                        status.style.color = "yellow"
-                        fileReader.onload = { e ->
-                            val source = e.target.asDynamic().result as String
-                            status.innerText = "Loaded from disk successfully"
-                            status.style.color = "green"
-                            sendData(UserData(HtmlPage(source), date, n))
-                        }
-                        fileReader.onloadend = {
-                            submitButton.readOnly = false
-                            Unit
-                        }
-                        fileReader.onerror = {
-                            console.log("Error while loading from disk happened: $it")
-                            status.innerText = "An error occurred reading this file: $it"
-                            status.style.color = "red"
-                            Unit
-                        }
-                        fileReader.readAsText(chosenFile)
-                    }
+                    status.textContent = "Operation has succeeded"
+                    status.style.color = "green"
+                } catch (e: Throwable) {
+                    console.log(e.stackTraceToString())
+                    status.textContent = "Error happened: ${e.message}"
+                    status.style.color = "red"
                 }
             }
         }
-        (document.getElementById("delete-button") as? HTMLInputElement)?.onclick = {
+
+        initDate?.textContent?.toLongOrNull()?.let {
+            dateSelector.valueAsNumber = it.toDouble()
+        }
+        form.onchange = { updateSourceType() }
+        highlightButton.onclick = {
+            val page = """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+	<title>Source code</title>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.22.0/themes/prism.css" rel="stylesheet"/>
+</head>
+<body><pre><code>
+${js("Prism").highlight(loadedHtml, js("Prism").languages.html, "html") as String}
+</code></pre>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.22.0/components/prism-core.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.22.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>"""
+            window.open()?.document?.apply {
+                write(page)
+//                getElementById("code")!!.textContent = loadedHtml
+            }
+        }
+        fun updateFileStatus() {
+            if (loadedHtml.isBlank()) {
+                fileStatus.textContent = "No file content loaded"
+                fileStatus.style.color = "red"
+            } else {
+                fileStatus.textContent = "File content is loaded"
+                fileStatus.style.color = "green"
+            }
+        }
+//        highlightCheckbox.onchange = {
+//            codeSourceBlock.style.display = if (highlightCheckbox.checked) "block" else "none"
+//            Unit
+//        }
+        showLink.onclick = {
+            if (isFromUrl())
+                window.open(url = urlSelector.value, target = "_blank")
+            else
+                window.open(target = "_blank")?.document?.write(loadedHtml)
+        }
+        clearButton.onclick = {
+            if (isFromUrl())
+                urlSelector.value = ""
+            else
+                loadedHtml = ""
+            updateSourceType()
+            updateFileStatus()
+        }
+        fileSelector.onchange = {
+            val chosenFile = chosenFile(fileSelector)
+            if (chosenFile != null) {
+                val fileReader = FileReader()
+                submitButton.readOnly = true
+                status.innerText = "Loading from disk"
+                status.style.color = "yellow"
+                fileReader.onload = { e ->
+                    loadedHtml = e.target.asDynamic().result as String
+//                    window.alert(loadedHtml)
+//                    codeSource.let {
+//                        it.textContent = loadedHtml
+//                        status.innerText = "Loaded from disk successfully"
+//                        status.innerText = "Highlighting"
+//                        status.style.color = "yellow"
+//                        val converted = js("Prism").highlight(loadedHtml, js("Prism").languages.html, "html") as String
+//                        status.innerText = "Loading highlighted"
+//                        status.style.color = "yellow"
+//                        it.innerHTML = converted
+//                    }
+                    defaultStatus()
+                }
+                fileReader.onloadend = {
+                    submitButton.readOnly = false
+                    updateFileStatus()
+                }
+                fileReader.onerror = {
+                    console.log("Error while loading from disk happened: $it")
+                    status.innerText = "An error occurred reading this file: $it"
+                    status.style.color = "red"
+                    Unit
+                }
+                fileReader.readAsText(chosenFile)
+            } else {
+                loadedHtml = ""
+//                codeSource.innerHTML = "You will see your code here"
+            }
+        }
+        submitButton.onclick = { _ ->
+            if (customCheckValidity(form)) {
+                val date = dateSelector.takeIf { dateSelectorCheckbox.checked }?.value
+                    ?.runCatching { toLocalDateTime() }?.getOrNull()
+                    ?.let { SerializableDate(it.toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()) }
+                val n = maxClicksSelector
+                    .takeIf { maxClicksSelectorCheckbox.checked }
+                    ?.value?.toIntOrNull()
+                val targetPage = if (isFromUrl()) PageByUrl(Url(urlSelector.value)) else HtmlPage(loadedHtml)
+                sendData(UserData(targetPage, date, n))
+            }
+        }
+        deleteButton?.onclick = {
             sendData(null)
         }
+        form.onsubmit = { false }
         updateSourceType()
+        updateFileStatus()
     }
 }
-
