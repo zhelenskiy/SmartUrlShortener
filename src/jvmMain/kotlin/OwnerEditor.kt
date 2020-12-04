@@ -18,19 +18,29 @@ fun BODY.ownerEditor(config: OwnerConfig?) {
         if (editing) {
             b {
                 label {
+                    +"Owner ID: "
+                }
+                label {
+                    id = "owner-id"
+                    +config!!.ownerUrl.text
+                }
+            }
+            b {
+                label {
                     +"Public link: "
                 }
-                a(href = "$serverHost/redirect?k=${config!!.publicConfig.publicUrl.text}", target = "_blank") {
-                    +config.publicConfig.publicUrl.text
+                val href = "$serverHost/redirect?k=${config!!.publicConfig.publicUrl.text}"
+                a(href = href, target = "_blank") {
+                    +href
                 }
             }
             b {
                 label {
                     +"Owner link: "
                 }
-                a(href = "$serverHost/redirect?k=${config!!.ownerUrl.text}", target = "_blank") {
-                    id = "owner-link"
-                    +config.ownerUrl.text
+                val href = "$serverHost/redirect?k=${config!!.ownerUrl.text}"
+                a(href = href, target = "_blank") {
+                    +href
                 }
             }
         }
@@ -67,7 +77,17 @@ fun BODY.ownerEditor(config: OwnerConfig?) {
                     }
                 }
             }
-            p {
+            div {
+                style = "display: flex;"
+                div {
+                    id = "url-selector-div"
+                    label { +"Url to redirect: " }
+                    input(InputType.url, classes = "text") {
+                        id = "url-selector"
+                        value = (config?.publicConfig?.data?.redirect as? PageByUrl)?.url?.text ?: ""
+                        placeholder = "Write your URL here"
+                    }
+                }
                 div {
                     id = "file-selector-div"
                     div {
@@ -78,7 +98,6 @@ fun BODY.ownerEditor(config: OwnerConfig?) {
                         label(classes = "file-label") {
                             id = "file-selector-label"
                             htmlFor = "file-selector"
-                            style = "margin:5px;"
                             +"choose file..."
                         }
                         input(InputType.file) {
@@ -92,58 +111,50 @@ fun BODY.ownerEditor(config: OwnerConfig?) {
                             }
                         }
                     }
-                    p {
-                        button(classes = "button") {
-                            id = "highlight-button"
-                            +"Show code"
-                        }
-                        div {
+                }
+                label(classes = "text") {
+                    style = "width:0;padding-left:0;padding-right:0;opacity:0%"
+                    +"a"
+                }
+                label(classes = "file-label") {
+                    style = "width:0;padding-left:0;padding-right:0;opacity:0%"
+                    +"a"
+                }
+            }
+            div {
 //                            id = "code-source-block"
-                            style = "display:none"
+                style = "display:none"
 //                            style = "display:inline-block;overflow:auto;resize:both;border:solid 1px black"
 //                            link(
 //                                href = "https://cdnjs.cloudflare.com/ajax/libs/prism/1.22.0/themes/prism.css",
 //                                rel = "stylesheet"
 //                            )
-                            script(src = "https://cdnjs.cloudflare.com/ajax/libs/prism/1.22.0/components/prism-core.min.js") { }
-                            script(src = "https://cdnjs.cloudflare.com/ajax/libs/prism/1.22.0/plugins/autoloader/prism-autoloader.min.js") { }
-                            pre {
-                                code(classes = "language-html") {
+                script(src = "https://cdnjs.cloudflare.com/ajax/libs/prism/1.22.0/components/prism-core.min.js") { }
+                script(src = "https://cdnjs.cloudflare.com/ajax/libs/prism/1.22.0/plugins/autoloader/prism-autoloader.min.js") { }
+                pre {
+                    code(classes = "language-html") {
 //                                    id = "code-source"
 //                                    +"You will see your code here"
-                                }
-                            }
-                            label {
-                                id = "init-user-html"
-                                +((config?.publicConfig?.data?.redirect as? HtmlPage)?.code ?: "")
-                            }
-                        }
                     }
                 }
-            }
-            p {
-                div {
-                    id = "url-selector-div"
-                    label { +"Url to redirect: " }
-                    input(InputType.url, classes = "text") {
-                        id = "url-selector"
-                        value = (config?.publicConfig?.data?.redirect as? PageByUrl)?.url?.text ?: ""
-                        placeholder = "Write your URL here"
-                    }
+                label {
+                    id = "init-user-html"
+                    +((config?.publicConfig?.data?.redirect as? HtmlPage)?.code ?: "")
                 }
             }
-            p {
-//                    a(href = config?.ownerUrl?.text?.let { "${serverHost}/redirect?k=$it&show=true" } ?: "about:blank",
-//                        target = "_blank") {
-                button(classes = "button") {
+            div("button-group") {
+                button(classes = "button first-button") {
                     id = "show-link"
                     +"Preview"
                 }
-            }
-            p {
-                button(classes = "button") {
+                button(classes = "button last-button") {
                     id = "clear-button"
                     +"Clear"
+                }
+                button(classes = "button last-button") {
+                    id = "highlight-button"
+                    style = "display:none"
+                    +"Show source code"
                 }
             }
             h3("header") {
@@ -192,16 +203,16 @@ fun BODY.ownerEditor(config: OwnerConfig?) {
                 }
             }
             p {
-                div {
-                    style = "display:flex; justify-content: space-around; flex-wrap: wrap;"
-                    input(InputType.submit, classes = "button bigButton") {
-                        style = "flex: 1 1 auto;"
+                div("button-group") {
+//                    style = "display:flex; flex-wrap: wrap;"
+                    input(InputType.submit, classes = "button first-button${if (editing) "" else " last-button"}") {
+//                        style = "flex: 1 1 auto;"
                         id = "submit-button"
                         value = (if (editing) "Modify" else "Create")
                     }
                     if (editing) {
-                        input(InputType.submit, classes = "button bigButton") {
-                            style = "flex: 1 1 auto;"
+                        input(InputType.submit, classes = "button last-button") {
+//                            style = "flex: 1 1 auto;"
                             id = "delete-button"
                             value = "Delete"
                         }

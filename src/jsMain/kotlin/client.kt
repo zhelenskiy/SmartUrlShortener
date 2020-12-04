@@ -34,7 +34,7 @@ fun main() {
         val maxClicksSelectorCheckbox = document.getElementById("max-clicks-selector-checkbox") as HTMLInputElement
         val maxClicksSelector = document.getElementById("max-clicks-selector") as HTMLInputElement
 //        val codeSourceBlock = document.getElementById("code-source-block") as HTMLDivElement
-        val ownerLink = document.getElementById("owner-link") as? HTMLAnchorElement
+        val ownerID = document.getElementById("owner-id") as? HTMLLabelElement
         val initDate = document.getElementById("init-date") as? HTMLLabelElement
         val showLink = document.getElementById("show-link") as HTMLButtonElement
         val deleteButton = document.getElementById("delete-button") as? HTMLInputElement
@@ -66,6 +66,8 @@ fun main() {
         fun updateSourceType() {
             val fromUrl: Boolean = isFromUrl()
             fileSelectorDiv.style.display = if (fromUrl) "none" else "block"
+            highlightButton.style.display = if (fromUrl) "none" else "block"
+            clearButton.className = "button" + if (fromUrl) " last-button" else ""
 //        val fileSelector = getFileSelector()
 //        fileSelector.required = !fromUrl
             urlSelectorDiv.style.display = if (fromUrl) "block" else "none"
@@ -85,7 +87,7 @@ fun main() {
         }
 
         fun sendData(userData: UserData?) {
-            val url = ownerLink?.text
+            val url = ownerID?.textContent
             val client = HttpClient(Js) {
                 install(JsonFeature) {
                     serializer = KotlinxSerializer()

@@ -1,5 +1,5 @@
 .common-background {
-    background: antiquewhite;
+    background: #d4bc65;
 }
 
 .main-block {
@@ -9,7 +9,7 @@
 
     height: 80%;
 
-    margin: 5% 20%;
+    margin: 5% 20% 5% 30%;
 
     /*align-items: flex-start;*/
     /*margin: 5% 20% 5% 20%;*/
@@ -36,13 +36,32 @@
     font-size: medium;
     color: white;
     padding: 8px;
-    border-radius: 16px;
-    border: black solid 1px;
+    border-left: black solid 1px;
+    border-right: black solid 1px;
+}
+
+.first-button {
+    border-bottom-left-radius: 10px;
+    border-top-left-radius: 10px;
+    border-left: 0;
+}
+
+.last-button {
+    border-bottom-right-radius: 10px;
+    border-top-right-radius: 10px;
+    border-right: 0;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: nowrap;
+    border: 1px red;
+    margin: 20px 0;
 }
 
 .button:hover {
     background: rgb(107, 0, 232);
-    border: black solid 1px;
+    /*border: black solid 1px;*/
 }
 
 .bigButton {
@@ -69,9 +88,10 @@
     /*background: linear-gradient(0deg, rgba(34,193,195,1) 0%, rgba(253,187,45,1) 100%);*/
     font-size: medium;
     color: black;
-    padding: 8px;
+    padding: 10px;
     border-radius: 5px;
     border: black solid 1px;
+    /*margin-top: 1px;*/
 }
 
 .checker {
@@ -85,18 +105,25 @@
 }
 
 .file-label {
+    font-size: medium;
     cursor: pointer;
     background: gainsboro;
     border-radius: 5px;
-    padding: 8px;
+    padding: 10px;
     border: black solid 1px;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 .file-label:hover {
     background: lightgray;
-    outline: 1px dotted #000;
+    /*outline: 1px dotted #000;*/
 }
 
 .colorful-background {
-    background: url(files/back.png);
+    /*background: url(files/back.png);*/
+    background: rgb(253,187,45);
+    background: linear-gradient(0deg, rgba(164,195,34,1) 0%, rgba(253,187,45,1) 100%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }

@@ -7,6 +7,7 @@ fun HTML.index() {
     }
     body(classes = "colorful-background") {
         div("main-block") {
+            style ="margin-left:30%;margin-right:30%;margin-top:10%;margin-bottom:10%;"
             h3 {
                 div("header") {
                     h2 {
@@ -40,7 +41,7 @@ fun HTML.index() {
                         action = "$serverHost/create"
                         button(classes = "button bigButton") {
                             type = ButtonType.submit
-                            style = "width:80%;border-radius:60px"
+                            style = "width:100%;border-radius:60px"
                             +"Shorten"
                         }
                     }
