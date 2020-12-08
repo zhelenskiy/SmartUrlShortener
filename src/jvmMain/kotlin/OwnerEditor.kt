@@ -78,7 +78,7 @@ fun BODY.ownerEditor(config: OwnerConfig?) {
                 }
             }
             div {
-                style = "display: flex;"
+                style = "display: flex;align-items: center"
                 div {
                     id = "url-selector-div"
                     label { +"Url to redirect: " }

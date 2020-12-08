@@ -57,7 +57,7 @@ fun main() {
                 status.style.color = "red"
             } else {
                 status.textContent = "The config is filled correctly"
-                status.style.color = "green"
+                status.style.color = "blue"
             }
         }
 
@@ -118,7 +118,7 @@ fun main() {
                         }
                     }
                     status.textContent = "Operation has succeeded"
-                    status.style.color = "green"
+                    status.style.color = "blue"
                 } catch (e: Throwable) {
                     console.log(e.stackTraceToString())
                     status.textContent = "Error happened: ${e.message}"
@@ -131,6 +131,8 @@ fun main() {
             dateSelector.valueAsNumber = it.toDouble()
         }
         form.onchange = { updateSourceType() }
+        maxClicksSelector.onkeyup = { updateSourceType() }
+        urlSelector.onkeyup = { updateSourceType() }
         highlightButton.onclick = {
             val page = """<!DOCTYPE html>
 <html>
@@ -157,7 +159,7 @@ ${js("Prism").highlight(loadedHtml, js("Prism").languages.html, "html") as Strin
                 fileStatus.style.color = "red"
             } else {
                 fileStatus.textContent = "File content is loaded"
-                fileStatus.style.color = "green"
+                fileStatus.style.color = "blue"
             }
         }
 //        highlightCheckbox.onchange = {

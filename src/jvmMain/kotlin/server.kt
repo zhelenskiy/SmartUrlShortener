@@ -46,7 +46,7 @@ private fun HTML.create() {
         commonHeadPart()
         script(src = "/static/output.js") {}
     }
-    body(classes = "common-background") { ownerEditor(null) }
+    body(classes = "colorful-background") { ownerEditor(null) }
 }
 
 private fun HTML.change(ownerConfig: OwnerConfig) {
@@ -55,7 +55,7 @@ private fun HTML.change(ownerConfig: OwnerConfig) {
         commonHeadPart()
         script(src = "/static/output.js") {}
     }
-    body(classes = "common-background") { ownerEditor(ownerConfig) }
+    body(classes = "colorful-background") { ownerEditor(ownerConfig) }
 }
 
 private fun HTML.errorPage(code: HttpStatusCode, message: String) {
@@ -63,7 +63,7 @@ private fun HTML.errorPage(code: HttpStatusCode, message: String) {
         title = "Error $code.value"
         commonHeadPart()
     }
-    body(classes = "common-background") {
+    body(classes = "colorful-background") {
         div("main-block") {
             div("header") {
                 p {
