@@ -1,4 +1,4 @@
-import Database.OperationResult.*
+import UrlDatabase.OperationResult.*
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.html.*
@@ -122,6 +122,9 @@ suspend inline fun <reified T> PipelineContext<*, ApplicationCall>.respondGood(v
         HttpStatusCode.OK
     ).let { value }
 
+//    val urlDatabase: UrlDatabase = RamUrlDatabase()
+val urlDatabase = ExposedUrlDatabase()
+
 fun main() {
     fun newLog() = ThreadLocalRandom.current().nextLong()
     fun Long.log(message: String) = synchronized(LogLock) {
@@ -132,7 +135,6 @@ fun main() {
         )
     }
 
-    val database: Database = RamDatabase()
     embeddedServer(Netty, port = 8080, host = "127.0.0.1") {
         install(ContentNegotiation) {
             json()
@@ -159,13 +161,13 @@ fun main() {
                         }
                         .onSuccess { data ->
                             respondGood<OwnerConfig>(
-                                database.registerUser(data).also { log("Registered: $it") })
+                                urlDatabase.registerUser(data).also { log("Registered: $it") })
                         }
                     //what if I just want to use it as an api
                     //call.respondRedirect("$serverHost/redir?k=${registered.ownerUrl.text}")
                 }
             }
-            get("/redirect") {
+            get("/{k}") {
                 with(newLog()) {
                     log("Reading shortened URL")
                     val url = call.parameters["k"]?.also { log("Redirecting to: $it") } ?: run {
@@ -173,7 +175,7 @@ fun main() {
                         return@get
                     }
 
-                    when (val config = database.getConfig(Url(url)).also { log("Found config is $it") }) {
+                    when (val config = urlDatabase.getConfig(Url(url)).also { log("Found config is $it") }) {
                         null -> respondBadHtml(HttpStatusCode.NotFound, "Unknown shortened URL")
                         is PublicConfig -> when (val page = config.data.redirect) {
                             is HtmlPage -> call.respondText(page.code, ContentType.Text.Html)
@@ -191,9 +193,12 @@ fun main() {
                         return@delete
                     })
 
-                    when (database.unregisterUser(url).also { log("Deletion result: $it") }) {
+                    when (urlDatabase.unregisterUser(url).also { log("Deletion result: $it") }) {
                         Done -> respondGood(Unit)
-                        AccessDenied -> respondBad<Unit>(HttpStatusCode.Forbidden, "Only owners can remove the link")
+                        AccessDenied -> respondBad<Unit>(
+                            HttpStatusCode.Forbidden,
+                            "Only owners can remove the link"
+                        )
                         NothingToDo -> respondBad<Unit>(
                             HttpStatusCode.NotFound,
                             "The link is already deleted or has never existed"
@@ -215,7 +220,7 @@ fun main() {
                                 "Cannot receive new config: $e".also { log(it) })
                         }
                         .onSuccess { newData ->
-                            when (database.changeUserData(url, newData).also { log("Result: $it") }) {
+                            when (urlDatabase.changeUserData(url, newData).also { log("Result: $it") }) {
                                 Done -> respondGood(Unit)
                                 AccessDenied -> respondBad<Unit>(
                                     HttpStatusCode.Forbidden,

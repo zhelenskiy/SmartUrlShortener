@@ -29,7 +29,7 @@ fun BODY.ownerEditor(config: OwnerConfig?) {
                 label {
                     +"Public link: "
                 }
-                val href = "$serverHost/redirect?k=${config!!.publicConfig.publicUrl.text}"
+                val href = "$serverHost/${config!!.publicConfig.publicUrl.text}"
                 a(href = href, target = "_blank") {
                     +href
                 }
@@ -38,7 +38,7 @@ fun BODY.ownerEditor(config: OwnerConfig?) {
                 label {
                     +"Owner link: "
                 }
-                val href = "$serverHost/redirect?k=${config!!.ownerUrl.text}"
+                val href = "$serverHost/${config!!.ownerUrl.text}"
                 a(href = href, target = "_blank") {
                     +href
                 }

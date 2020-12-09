@@ -106,7 +106,7 @@ fun main() {
                                 contentType(ContentType.Application.Json)
                                 body = userData
                             }
-                            window.location.href = "$serverHost/redirect?k=$url"
+                            window.location.href = "$serverHost/$url"
                         }
                         else -> {
                             val registered: OwnerConfig = client.post("$serverHost/api/shorten/") {
@@ -114,7 +114,7 @@ fun main() {
                                 body = userData
                             }
 //                        window.alert(registered.toString())
-                            window.location.href = "$serverHost/redirect?k=${registered.ownerUrl.text}"
+                            window.location.href = "$serverHost/${registered.ownerUrl.text}"
                         }
                     }
                     status.textContent = "Operation has succeeded"

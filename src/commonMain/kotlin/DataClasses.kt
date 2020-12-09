@@ -25,7 +25,7 @@ data class SerializableDate(val millis: Long) {
 data class UserData(
     val redirect: TargetPage,
     val expirationDate: SerializableDate?,
-    var maxClicks: Int?
+    val maxClicks: Int?
 )
 
 @Serializable

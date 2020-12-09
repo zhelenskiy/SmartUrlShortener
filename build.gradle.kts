@@ -8,6 +8,8 @@ plugins {
 group = "me.zhelenskiy"
 version = "1.0-SNAPSHOT"
 
+val exposedVersion = "0.25.1"
+
 repositories {
     mavenCentral()
     jcenter()
@@ -22,7 +24,6 @@ repositories {
     }
     maven(url = "https://kotlin.bintray.com/kotlinx/")
 }
-
 kotlin {
     jvm {
         compilations.all {
@@ -57,6 +58,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-core:1.4.1")
                 implementation("io.ktor:ktor-client-serialization:1.4.1")
                 implementation("io.ktor:ktor-client-json:1.4.1")
+                implementation("org.xerial:sqlite-jdbc:3.32.3.2")
             }
         }
         val commonTest by getting {
@@ -71,6 +73,9 @@ kotlin {
                 implementation("io.ktor:ktor-html-builder:1.4.1")
                 implementation("io.ktor:ktor-serialization:1.4.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.2")
+                implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+                implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+                implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
             }
         }
         val jvmTest by getting {
@@ -85,9 +90,9 @@ kotlin {
                 implementation("org.jetbrains:kotlin-react-dom:16.13.1-pre.110-kotlin-1.4.10")
                 implementation("org.jetbrains:kotlin-styled:1.0.0-pre.110-kotlin-1.4.10")
 //                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:0.20.0")
-                implementation ("io.ktor:ktor-client-js:1.4.1")
-                implementation ("io.ktor:ktor-client-core-js:1.4.1")
-                implementation ("io.ktor:ktor-client-json-js:1.4.1")
+                implementation("io.ktor:ktor-client-js:1.4.1")
+                implementation("io.ktor:ktor-client-core-js:1.4.1")
+                implementation("io.ktor:ktor-client-json-js:1.4.1")
             }
         }
         val jsTest by getting {
