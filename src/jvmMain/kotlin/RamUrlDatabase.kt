@@ -9,4 +9,6 @@ class RamUrlDatabase : UrlDatabase() {
     override fun unregisterOnlyLink(url: Url) {
         map.remove(url)
     }
+
+    override fun <R> atomic(f: UrlDatabase.() -> R): R = synchronized(this) { f() }
 }

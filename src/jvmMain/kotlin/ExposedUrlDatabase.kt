@@ -31,10 +31,7 @@ class ExposedUrlDatabase(user: String = "", password: String = "") : UrlDatabase
         println("Table created")
     }
 
-    private fun <T> loggedTransaction(
-        db: Database? = null,
-        statement: Transaction.() -> T
-    ): T = runCatching {
+    private fun <T> loggedTransaction(db: Database? = null, statement: Transaction.() -> T): T = runCatching {
         transaction(db) {
             addLogger(StdOutSqlLogger)
             statement()
@@ -74,6 +71,8 @@ class ExposedUrlDatabase(user: String = "", password: String = "") : UrlDatabase
             UrlEntity.find { SqlDB.url eq url.text }.firstOrNull()?.delete()
         }
     }
+
+    override fun <R> atomic(f: UrlDatabase.() -> R): R = transaction { f() }
 
     fun removeAll() {
         loggedTransaction {

@@ -6,42 +6,28 @@ abstract class UrlDatabase {
     protected abstract fun getUnsafeConfig(url: Url): OwnerConfig?
     protected abstract fun registerLink(url: Url, ownerConfig: OwnerConfig)
     protected abstract fun unregisterOnlyLink(url: Url)
+    protected abstract fun <R> atomic(f: UrlDatabase.() -> R): R
 
     private infix fun Url.isOwnerFor(config: OwnerConfig) = config.ownerUrl == this
 
-    @Synchronized
-    fun getConfig(url: Url): Config? {
+    fun getConfig(url: Url): Config? = atomic {
         val ownerConfig = getUnsafeConfig(url)
-        return when {
+        fun <T> T?.isNullOr(predicate: (T) -> Boolean) = this == null || predicate(this)
+        when {
             ownerConfig == null -> null
             url isOwnerFor ownerConfig -> ownerConfig
-            else -> {
-                ownerConfig.publicConfig
-                    .takeIf {
-                        val expirationDate = it.data.expirationDate
-                        expirationDate == null || expirationDate >= SerializableDate.now()
-                    }
-                    ?.takeIf {
-                        val maxClicks = it.data.maxClicks
-                        maxClicks == null || maxClicks > 0
-                    }
-                    ?.also { publicConfig ->
-                        val maxClicks = publicConfig.data.maxClicks
-                        if (maxClicks != null) {
-                            val newConfig = ownerConfig.copy(
-                                publicConfig =
-                                publicConfig.copy(data = publicConfig.data.copy(maxClicks = maxClicks - 1))
-                            )
-                            registerLink(ownerConfig.ownerUrl, newConfig)
-                            registerLink(publicConfig.publicUrl, newConfig)
-                        }
-                    }
-            }
+            else -> ownerConfig.publicConfig
+                .takeIf { config -> config.data.expirationDate.isNullOr { it >= SerializableDate.now() } }
+                ?.takeIf { config -> config.data.maxClicks.isNullOr { it > 0 } }
+                ?.also { config ->
+                    config.data.maxClicks?.let {
+                        ownerConfig.copy(publicConfig = config.copy(data = config.data.copy(maxClicks = it - 1)))
+                    }?.let(::registerUser)
+                }
         }
     }
 
-    @Synchronized
-    fun registerUser(data: UserData): OwnerConfig {
+    fun registerUser(data: UserData): OwnerConfig = atomic {
         tailrec fun generateLink(got: Url?): Url = Url(randomString())
             .takeIf { getUnsafeConfig(it) == null }
             ?.takeIf { it != got }
@@ -49,7 +35,7 @@ abstract class UrlDatabase {
 
         val ownerUrl = generateLink(null)
         val publicUrl = generateLink(ownerUrl)
-        return OwnerConfig(ownerUrl, PublicConfig(publicUrl, data)).also { registerUser(it) }
+        OwnerConfig(ownerUrl, PublicConfig(publicUrl, data)).also(::registerUser)
     }
 
     private fun registerUser(ownerConfig: OwnerConfig) {
@@ -57,11 +43,12 @@ abstract class UrlDatabase {
         registerLink(ownerConfig.publicConfig.publicUrl, ownerConfig)
     }
 
-    @Synchronized
-    fun unregisterUser(url: Url): OperationResult = when (val config = getConfig(url)) {
-        null -> OperationResult.NothingToDo
-        is PublicConfig -> OperationResult.AccessDenied
-        is OwnerConfig -> unregisterUser(config).let { OperationResult.Done }
+    fun unregisterUser(url: Url): OperationResult = atomic {
+        when (val config = getConfig(url)) {
+            null -> OperationResult.NothingToDo
+            is PublicConfig -> OperationResult.AccessDenied
+            is OwnerConfig -> unregisterUser(config).let { OperationResult.Done }
+        }
     }
 
     private fun unregisterUser(ownerConfig: OwnerConfig) {
@@ -69,11 +56,12 @@ abstract class UrlDatabase {
         unregisterOnlyLink(ownerConfig.ownerUrl)
     }
 
-    @Synchronized
-    fun changeUserData(url: Url, newData: UserData): OperationResult = when (val config = getConfig(url)) {
-        null -> OperationResult.NothingToDo
-        is PublicConfig -> OperationResult.AccessDenied
-        is OwnerConfig -> changeUserData(config, newData).let { OperationResult.Done }
+    fun changeUserData(url: Url, newData: UserData): OperationResult = atomic {
+        when (val config = getConfig(url)) {
+            null -> OperationResult.NothingToDo
+            is PublicConfig -> OperationResult.AccessDenied
+            is OwnerConfig -> changeUserData(config, newData).let { OperationResult.Done }
+        }
     }
 
     private fun changeUserData(ownerConfig: OwnerConfig, newData: UserData) {

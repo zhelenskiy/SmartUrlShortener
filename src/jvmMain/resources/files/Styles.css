@@ -35,20 +35,21 @@
     /*background: linear-gradient(0deg, rgba(34,193,195,1) 0%, rgba(253,187,45,1) 100%);*/
     font-size: medium;
     color: white;
-    padding: 8px;
+    padding: 10px 15px;
     border-left: black solid 1px;
     border-right: black solid 1px;
+    cursor: pointer;
 }
 
 .first-button {
-    border-bottom-left-radius: 10px;
-    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10em;
+    border-top-left-radius: 10em;
     border-left: 0;
 }
 
 .last-button {
-    border-bottom-right-radius: 10px;
-    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10em;
+    border-top-right-radius: 10em;
     border-right: 0;
 }
 
@@ -78,9 +79,14 @@
     /*border: 0;*/
 }
 
+.button:active, .button:focus, .text:active, .text:focus {
+    outline: none;
+    box-shadow: 0 0 0 1pt black;
+}
+
 .bigButton:hover {
     background: rgb(63,94,251);
-    background: radial-gradient(circle, rgba(63,94,251,1) 0%, rgba(252,70,107,1) 100%);
+    background: linear-gradient(rgb(139, 83, 208) 0%, rgb(51, 75, 167) 100%);
 }
 
 .text {
@@ -88,9 +94,10 @@
     /*background: linear-gradient(0deg, rgba(34,193,195,1) 0%, rgba(253,187,45,1) 100%);*/
     font-size: medium;
     color: black;
-    padding: 10px;
-    border-radius: 5px;
-    border: black solid 1px;
+    padding: 10px 15px;
+    border-radius: 20em;
+    margin: 0 0.5em;
+    border: 0;
     /*margin-top: 1px;*/
 }
 
@@ -105,25 +112,21 @@
 }
 
 .file-label {
-    font-size: medium;
-    cursor: pointer;
-    background: gainsboro;
-    border-radius: 5px;
-    padding: 10px;
-    border: black solid 1px;
-    margin-left: 5px;
-    margin-right: 5px;
+    margin: 0 0.5em;
+    width: 6em;
+    text-align: center;
+    caret-color: transparent;
 }
 
-.file-label:hover {
-    background: lightgray;
-    /*outline: 1px dotted #000;*/
-}
+/*.file-label:hover {*/
+/*    background: lightgray;*/
+/*    !*outline: 1px dotted #000;*!*/
+/*}*/
 
 .colorful-background {
     /*background: url(files/back.png);*/
     background: rgb(253,187,45);
-    background: linear-gradient(0deg, rgba(164,195,34,1) 0%, rgba(253,187,45,1) 100%);
+    background: linear-gradient(0deg, rgb(83, 203, 37) 0%, rgb(255, 171, 0) 100%);
     background-repeat: no-repeat;
     background-attachment: fixed;
 }

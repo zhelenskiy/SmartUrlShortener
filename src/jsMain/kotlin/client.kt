@@ -42,6 +42,8 @@ fun main() {
         val highlightButton = document.getElementById("highlight-button") as HTMLButtonElement
         val fileStatus = document.getElementById("file-status") as HTMLLabelElement
         val clearButton = document.getElementById("clear-button") as HTMLButtonElement
+//        val fileSelectorLabel = document.getElementById("file-selector-label") as HTMLLabelElement
+        val fileReporter = document.getElementById("file-reporter") as HTMLInputElement
 
         var loadedHtml = (document.getElementById("init-user-html") as HTMLLabelElement).textContent ?: ""
 
@@ -67,6 +69,7 @@ fun main() {
             val fromUrl: Boolean = isFromUrl()
             fileSelectorDiv.style.display = if (fromUrl) "none" else "block"
             highlightButton.style.display = if (fromUrl) "none" else "block"
+            fileReporter.style.display = if (fromUrl) "none" else "block"
             clearButton.className = "button" + if (fromUrl) " last-button" else ""
 //        val fileSelector = getFileSelector()
 //        fileSelector.required = !fromUrl
@@ -154,6 +157,7 @@ ${js("Prism").highlight(loadedHtml, js("Prism").languages.html, "html") as Strin
             }
         }
         fun updateFileStatus() {
+            fileReporter.setCustomValidity("")
             if (loadedHtml.isBlank()) {
                 fileStatus.textContent = "No file content loaded"
                 fileStatus.style.color = "red"
@@ -177,8 +181,8 @@ ${js("Prism").highlight(loadedHtml, js("Prism").languages.html, "html") as Strin
                 urlSelector.value = ""
             else
                 loadedHtml = ""
-            updateSourceType()
             updateFileStatus()
+            updateSourceType()
         }
         fileSelector.onchange = {
             val chosenFile = chosenFile(fileSelector)
@@ -200,13 +204,16 @@ ${js("Prism").highlight(loadedHtml, js("Prism").languages.html, "html") as Strin
 //                        status.style.color = "yellow"
 //                        it.innerHTML = converted
 //                    }
+                    updateFileStatus()
                     defaultStatus()
                 }
                 fileReader.onloadend = {
                     submitButton.readOnly = false
-                    updateFileStatus()
+                    fileSelector.value = ""
+                    Unit
                 }
                 fileReader.onerror = {
+                    updateFileStatus()
                     console.log("Error while loading from disk happened: $it")
                     status.innerText = "An error occurred reading this file: $it"
                     status.style.color = "red"
@@ -228,13 +235,34 @@ ${js("Prism").highlight(loadedHtml, js("Prism").languages.html, "html") as Strin
                     ?.value?.toIntOrNull()
                 val targetPage = if (isFromUrl()) PageByUrl(Url(urlSelector.value)) else HtmlPage(loadedHtml)
                 sendData(UserData(targetPage, date, n))
+            } else if (form.checkValidity()) {
+                fileSelector.required = true
+                val msg = fileSelector.validationMessage
+                fileSelector.required = false
+                fileReporter.setCustomValidity(msg)
+                fileReporter.pattern = "_"
+                console.log(msg)
+                form.reportValidity()
+                fileReporter.pattern = ".*"
             }
         }
-        deleteButton?.onclick = {
-            sendData(null)
+        fileReporter.onclick = {
+            fileSelector.click()
+            updateFileStatus()
+            updateSourceType()
+            false
         }
+        fileReporter.onselect = { fileReporter.setSelectionRange(0, 0); }
+        fileReporter.onkeydown = {
+            if (it.keyCode == 13) { //enter
+                fileSelector.click()
+                false
+            } else it.keyCode == 9 //tab
+        }
+        deleteButton?.onclick = { sendData(null) }
+        form.onplay = { false }
         form.onsubmit = { false }
-        updateSourceType()
         updateFileStatus()
+        updateSourceType()
     }
 }

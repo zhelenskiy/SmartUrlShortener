@@ -78,11 +78,14 @@ fun BODY.ownerEditor(config: OwnerConfig?) {
                 }
             }
             div {
-                style = "display: flex;align-items: center"
+                style = "display: flex;align-items: center;"
                 div {
                     id = "url-selector-div"
-                    label { +"Url to redirect: " }
+                    label {
+                        +"Url to redirect: "
+                    }
                     input(InputType.url, classes = "text") {
+                        style = "margin-top:5px;"
                         id = "url-selector"
                         value = (config?.publicConfig?.data?.redirect as? PageByUrl)?.url?.text ?: ""
                         placeholder = "Write your URL here"
@@ -95,30 +98,37 @@ fun BODY.ownerEditor(config: OwnerConfig?) {
                         label {
                             +"Source file: "
                         }
-                        label(classes = "file-label") {
-                            id = "file-selector-label"
-                            htmlFor = "file-selector"
-                            +"choose file..."
-                        }
+//                        label(classes = "file-label") {
+//                            id = "file-selector-label"
+//                            htmlFor = "file-selector"
+//                        }
                         input(InputType.file) {
                             id = "file-selector"
                             accept = "text/html"
                             style = "display:none;"
                         }
+                        input(classes = "button first-button last-button file-label") {
+                            id = "file-reporter"
+                            value = "Choose file"
+                            style = "margin-top:5px;"
+                        }
                         i {
-                            label {
-                                id = "file-status"
+                            b {
+                                style = "letter-spacing: 0.08em;"
+                                label {
+                                    id = "file-status"
+                                }
                             }
                         }
                     }
                 }
                 label(classes = "text") {
-                    style = "width:0;padding-left:0;padding-right:0;opacity:0%"
+                    style = "width:0;padding-left:0;padding-right:0;opacity:0%;margin-top:5px;"
                     +"a"
                 }
-                label(classes = "file-label") {
-                    style = "width:0;padding-left:0;padding-right:0;opacity:0%"
-                    +"a"
+                input(classes = "button first-button last-button file-label") {
+                    style = "width:0;padding-left:0;padding-right:0;opacity:0%;margin-top:5px;"
+                    disabled = true
                 }
             }
             div {
@@ -172,6 +182,7 @@ fun BODY.ownerEditor(config: OwnerConfig?) {
                         +"Expiration date: "
                     }
                     input(InputType.dateTimeLocal, classes = "text") {
+                        style = "margin-top:5px;"
                         id = "date-selector"
 //                            hidden = !useDate
                         required = useDate
@@ -193,6 +204,7 @@ fun BODY.ownerEditor(config: OwnerConfig?) {
                         +"Max number of clicks: "
                     }
                     input(InputType.number, classes = "text") {
+                        style = "margin-top:5px;"
                         id = "max-clicks-selector"
                         min = "0"
 //                            hidden = !useMaxClicks
@@ -219,9 +231,12 @@ fun BODY.ownerEditor(config: OwnerConfig?) {
                     }
                 }
                 p {
-                    i {
-                        label {
-                            id = "status"
+                    style = "letter-spacing: 0.08em;"
+                    b {
+                        i {
+                            label {
+                                id = "status"
+                            }
                         }
                     }
                 }
