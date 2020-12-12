@@ -134,6 +134,7 @@ fun main() {
             dateSelector.valueAsNumber = it.toDouble()
         }
         form.onchange = { updateSourceType() }
+        sourceUrl.onchange = { updateSourceType() }
         maxClicksSelector.onkeyup = { updateSourceType() }
         urlSelector.onkeyup = { updateSourceType() }
         highlightButton.onclick = {
