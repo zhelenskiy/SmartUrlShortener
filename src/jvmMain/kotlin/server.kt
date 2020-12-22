@@ -19,6 +19,9 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.concurrent.ThreadLocalRandom
+import kotlin.math.pow
+import kotlin.math.roundToLong
+import kotlin.time.*
 
 fun HEAD.commonHeadPart() {
     link {
@@ -125,6 +128,7 @@ suspend inline fun <reified T> PipelineContext<*, ApplicationCall>.respondGood(v
 //    val urlDatabase: UrlDatabase = RamUrlDatabase()
 val urlDatabase = ExposedUrlDatabase()
 
+@ExperimentalTime
 fun main() {
     fun newLog() = ThreadLocalRandom.current().nextLong()
     fun Long.log(message: String) = synchronized(LogLock) {
@@ -134,6 +138,8 @@ fun main() {
             } $message"
         )
     }
+
+    val guards = Array(6) { LoopGuard((50L * 10.0.pow(it)).roundToLong(), (100L * 10.0.pow(it)).milliseconds) }
 
     embeddedServer(Netty, port = 8080, host = "127.0.0.1") {
         install(ContentNegotiation) {
@@ -179,7 +185,14 @@ fun main() {
                         null -> respondBadHtml(HttpStatusCode.NotFound, "Unknown shortened URL")
                         is PublicConfig -> when (val page = config.data.redirect) {
                             is HtmlPage -> call.respondText(page.code, ContentType.Text.Html)
-                            is PageByUrl -> call.respondRedirect(page.url.text)
+                            is PageByUrl -> when {
+                                call.request.queryParameters.contains("recursive") ->
+                                    respondBadHtml(HttpStatusCode.Forbidden, "Cannot redirect to other public link")
+                                guards.all { it.isSafe(page.url) } ->
+                                    respondBadHtml(HttpStatusCode.Forbidden, "Too many requests to the page.")
+                                else -> call.respondRedirect(
+                                    page.url.text.let { if (it.startsWith(serverHost)) "$it?recursive" else it })
+                            }
                         }
                         is OwnerConfig -> call.respondHtml(HttpStatusCode.OK) { change(config) }
                     }

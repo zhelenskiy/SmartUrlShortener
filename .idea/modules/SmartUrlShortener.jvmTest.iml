@@ -6,8 +6,8 @@
         <dependsOnModuleNames>SmartUrlShortener:commonTest</dependsOnModuleNames>
         <sourceSets>
           <sourceSet>SmartUrlShortener.jvmMain</sourceSet>
-          <sourceSet>SmartUrlShortener.commonTest</sourceSet>
           <sourceSet>SmartUrlShortener.commonMain</sourceSet>
+          <sourceSet>SmartUrlShortener.commonTest</sourceSet>
         </sourceSets>
         <newMppModelJpsModuleKind>COMPILATION_AND_SOURCE_SET_HOLDER</newMppModelJpsModuleKind>
         <externalSystemTestTasks>
