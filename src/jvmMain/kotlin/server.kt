@@ -129,14 +129,16 @@ suspend inline fun <reified T> PipelineContext<*, ApplicationCall>.respondGood(v
 val urlDatabase = ExposedUrlDatabase()
 
 @ExperimentalTime
-fun main() {
+fun main(vararg args: String) {
     fun newLog() = ThreadLocalRandom.current().nextLong()
-    fun Long.log(message: String) = synchronized(LogLock) {
-        println(
-            "${String.format("[%20d]", this)} ${
-                Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-            } $message"
-        )
+    val logging = "no-log" !in args
+    fun Long.log(message: String) {
+        if (logging) {
+            synchronized(LogLock) {
+                val curTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                println("${String.format("[%20d]", this)} $curTime $message")
+            }
+        }
     }
 
     val guards = Array(6) { LoopGuard((50L * 10.0.pow(it)).roundToLong(), (100L * 10.0.pow(it)).milliseconds) }
