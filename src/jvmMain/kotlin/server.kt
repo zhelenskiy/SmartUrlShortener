@@ -18,9 +18,9 @@ import kotlinx.html.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.concurrent.ThreadLocalRandom
-import kotlin.math.pow
-import kotlin.math.roundToLong
 import kotlin.time.*
 
 fun HEAD.commonHeadPart() {
@@ -125,8 +125,22 @@ suspend inline fun <reified T> PipelineContext<*, ApplicationCall>.respondGood(v
         HttpStatusCode.OK
     ).let { value }
 
+val dbConfig = runCatching {
+    val (driver, user, password) = Files.readAllLines(Paths.get("credentials.txt"))
+    LaunchConfig(driver, user, password)
+}.onFailure {
+    println("Cannot load database configuration:\n${it.message}")
+    it.printStackTrace(System.out)
+    println("Using local database")
+}.getOrDefault(LaunchConfig("jdbc:sqlite:identifier.sqlite", "", ""))
+    .also {
+        println("Using driver: ${it.driver}")
+        println("User: ${it.user}")
+        println("Password: ${String(it.password.map { '*' }.toCharArray())}")
+    }
+
 //    val urlDatabase: UrlDatabase = RamUrlDatabase()
-val urlDatabase = ExposedUrlDatabase()
+val urlDatabase: ExposedUrlDatabase = ExposedUrlDatabase(dbConfig)
 
 @ExperimentalTime
 fun main(vararg args: String) {
@@ -141,9 +155,10 @@ fun main(vararg args: String) {
         }
     }
 
-    val guards = Array(6) { LoopGuard((50L * 10.0.pow(it)).roundToLong(), (100L * 10.0.pow(it)).milliseconds) }
+//    val guards = Array(6) { LoopGuard((50L * 10.0.pow(it)).roundToLong(), (100L * 10.0.pow(it)).milliseconds) }
+    val guards = emptyArray<LoopGuard>()
 
-    embeddedServer(Netty, port = 8080, host = "127.0.0.1") {
+    embeddedServer(Netty, port = 80, host = "127.0.0.1") {
         install(ContentNegotiation) {
             json()
         }
@@ -190,7 +205,7 @@ fun main(vararg args: String) {
                             is PageByUrl -> when {
                                 call.request.queryParameters.contains("recursive") ->
                                     respondBadHtml(HttpStatusCode.Forbidden, "Cannot redirect to other public link")
-                                guards.all { it.isSafe(page.url) } ->
+                                guards.any { !it.isSafe(page.url) } ->
                                     respondBadHtml(HttpStatusCode.Forbidden, "Too many requests to the page.")
                                 else -> call.respondRedirect(
                                     page.url.text.let { if (it.startsWith(serverHost)) "$it?recursive" else it })

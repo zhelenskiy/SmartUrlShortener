@@ -21,9 +21,11 @@ internal class UrlEntity(id: EntityID<Long>) : LongEntity(id) {
     var configJson by SqlDB.configJson
 }
 
-class ExposedUrlDatabase(user: String = "", password: String = "") : UrlDatabase() {
+data class LaunchConfig(val driver: String, val user: String, val password: String)
+
+class ExposedUrlDatabase(config: LaunchConfig) : UrlDatabase() {
     init {
-        Database.connect("jdbc:sqlite:identifier.sqlite", user = user, password = password)
+        Database.connect(config.driver, user = config.user, password = config.password)
         println("Connected to database")
         loggedTransaction {
             create(SqlDB)

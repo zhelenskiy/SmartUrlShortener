@@ -18,5 +18,11 @@
         </library>
       </libraries>
     </data-source>
+    <data-source source="LOCAL" name="@urldb.cx1wruqplmxv.us-east-1.rds.amazonaws.com" uuid="c569edb3-772b-401a-b531-81570434e902">
+      <driver-ref>mysql.8</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://urldb.cx1wruqplmxv.us-east-1.rds.amazonaws.com:3306</jdbc-url>
+    </data-source>
   </component>
 </project>

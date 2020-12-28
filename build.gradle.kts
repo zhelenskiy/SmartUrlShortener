@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 plugins {
     kotlin("multiplatform") version "1.4.20"
     kotlin("plugin.serialization") version "1.4.10"
+    id("com.github.johnrengelman.shadow") version "5.0.0"
     application
 }
 group = "me.zhelenskiy"
@@ -59,6 +60,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-serialization:1.4.1")
                 implementation("io.ktor:ktor-client-json:1.4.1")
                 implementation("org.xerial:sqlite-jdbc:3.32.3.2")
+                implementation("mysql:mysql-connector-java:8.0.22")
             }
         }
         val commonTest by getting {
@@ -116,4 +118,14 @@ tasks.getByName<Jar>("jvmJar") {
 tasks.getByName<JavaExec>("run") {
     dependsOn(tasks.getByName<Jar>("jvmJar"))
     classpath(tasks.getByName<Jar>("jvmJar"))
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes(
+            mapOf(
+                "Main-Class" to application.mainClassName
+            )
+        )
+    }
 }

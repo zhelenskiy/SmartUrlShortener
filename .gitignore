@@ -3,3 +3,5 @@
 /build/
 /build/classes/kotlin/jvm/main/
 /build/js/packages/SmartUrlShortener/kotlin/
+/credentials.txt
+/.idea/
