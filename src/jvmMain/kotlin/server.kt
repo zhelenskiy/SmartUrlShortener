@@ -158,7 +158,7 @@ fun main(vararg args: String) {
 //    val guards = Array(6) { LoopGuard((50L * 10.0.pow(it)).roundToLong(), (100L * 10.0.pow(it)).milliseconds) }
     val guards = emptyArray<LoopGuard>()
 
-    embeddedServer(Netty, port = 80, host = "127.0.0.1") {
+    embeddedServer(Netty) {
         install(ContentNegotiation) {
             json()
         }

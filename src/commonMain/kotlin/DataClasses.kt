@@ -4,7 +4,8 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
-const val serverHost = "http://ec2-54-234-146-153.compute-1.amazonaws.com"
+const val mainServerHost = "ec2-107-21-183-89.compute-1.amazonaws.com"
+const val serverHost = "http://$mainServerHost"
 
 @Serializable
 data class Url(val text: String)
